@@ -11,19 +11,21 @@ const CurrentGroupWrapper = styled.div`
   padding: 1rem;
   gap: 1rem;
   flex: 1;
-  max-height: 800px;
   overflow-x: auto;
   overflow-y: hidden;
 `;
 
-const ScanWrapper = styled.div`
+const ScanWrapper = styled.div<{ selected: boolean }>`
   height: 100%;
-  border: 1px solid black;
+  border: 2px solid black;
   aspect-ratio: 0.7225;
+  max-height: 800px;
 
   display: flex;
   justify-content: center;
   align-items: center;
+
+  ${({ selected }) => (selected ? `border-color: orange;` : ``)}
 `;
 const ScanImage = styled.img`
   height: 100%;
@@ -52,13 +54,25 @@ function Error() {
 
 interface CurrentGroupProps {
   group: Scan[];
+  selectedScan: number | null;
+  setSelectedScan: (index: number) => void;
 }
 
-export function CurrentGroup({ group }: CurrentGroupProps) {
+export function CurrentGroup({
+  group,
+  selectedScan,
+  setSelectedScan,
+}: CurrentGroupProps) {
   return (
     <CurrentGroupWrapper>
       {group.map((scan) => (
-        <ScanWrapper key={scan.id}>
+        <ScanWrapper
+          key={scan.id}
+          selected={scan.id === selectedScan}
+          onClick={() => {
+            setSelectedScan(scan.id!);
+          }}
+        >
           {scan.status === "PENDING" && <Loader />}
           {scan.status === "FAILED" && <Error />}
           {scan.status === "COMPLETE" && <ScanImage src={scan.path} />}

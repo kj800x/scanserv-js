@@ -16,6 +16,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\n  query omnibus {\n    dividers {\n      id\n      ts\n    }\n    scans {\n      id\n      path\n      status\n      scannedAt\n      scanner\n      scanParameters\n    }\n  }\n": types.OmnibusDocument,
     "\n  mutation scan($name: String!, $parameters: String!) {\n    scan(name: $name, parameters: $parameters)\n  }\n": types.ScanDocument,
+    "\n  mutation rescan($name: String!, $parameters: String!, $scanId: Int!) {\n    retryScan(name: $name, parameters: $parameters, scanId: $scanId)\n  }\n": types.RescanDocument,
     "\n  mutation addDivider {\n    addDivider\n  }\n": types.AddDividerDocument,
 };
 
@@ -41,6 +42,10 @@ export function graphql(source: "\n  query omnibus {\n    dividers {\n      id\n
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation scan($name: String!, $parameters: String!) {\n    scan(name: $name, parameters: $parameters)\n  }\n"): (typeof documents)["\n  mutation scan($name: String!, $parameters: String!) {\n    scan(name: $name, parameters: $parameters)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation rescan($name: String!, $parameters: String!, $scanId: Int!) {\n    retryScan(name: $name, parameters: $parameters, scanId: $scanId)\n  }\n"): (typeof documents)["\n  mutation rescan($name: String!, $parameters: String!, $scanId: Int!) {\n    retryScan(name: $name, parameters: $parameters, scanId: $scanId)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

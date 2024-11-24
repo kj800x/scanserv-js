@@ -43,6 +43,7 @@ export type MutationRoot = {
   addDivider: Scalars['Int']['output'];
   createBook: Scalars['ID']['output'];
   deleteBook: Scalars['Boolean']['output'];
+  retryScan: Scalars['Int']['output'];
   scan: Scalars['Int']['output'];
 };
 
@@ -55,6 +56,13 @@ export type MutationRootCreateBookArgs = {
 
 export type MutationRootDeleteBookArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationRootRetryScanArgs = {
+  name: Scalars['String']['input'];
+  parameters: Scalars['String']['input'];
+  scanId: Scalars['Int']['input'];
 };
 
 
@@ -128,6 +136,15 @@ export type ScanMutationVariables = Exact<{
 
 export type ScanMutation = { __typename?: 'MutationRoot', scan: number };
 
+export type RescanMutationVariables = Exact<{
+  name: Scalars['String']['input'];
+  parameters: Scalars['String']['input'];
+  scanId: Scalars['Int']['input'];
+}>;
+
+
+export type RescanMutation = { __typename?: 'MutationRoot', retryScan: number };
+
 export type AddDividerMutationVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -136,4 +153,5 @@ export type AddDividerMutation = { __typename?: 'MutationRoot', addDivider: numb
 
 export const OmnibusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"omnibus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dividers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"ts"}}]}},{"kind":"Field","name":{"kind":"Name","value":"scans"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"scannedAt"}},{"kind":"Field","name":{"kind":"Name","value":"scanner"}},{"kind":"Field","name":{"kind":"Name","value":"scanParameters"}}]}}]}}]} as unknown as DocumentNode<OmnibusQuery, OmnibusQueryVariables>;
 export const ScanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"scan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"parameters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scan"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"parameters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"parameters"}}}]}]}}]} as unknown as DocumentNode<ScanMutation, ScanMutationVariables>;
+export const RescanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"rescan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"parameters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scanId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"retryScan"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"parameters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"parameters"}}},{"kind":"Argument","name":{"kind":"Name","value":"scanId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scanId"}}}]}]}}]} as unknown as DocumentNode<RescanMutation, RescanMutationVariables>;
 export const AddDividerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"addDivider"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addDivider"}}]}}]} as unknown as DocumentNode<AddDividerMutation, AddDividerMutationVariables>;

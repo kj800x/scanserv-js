@@ -23,6 +23,12 @@ export const SCAN = graphql(`
   }
 `);
 
+export const RESCAN = graphql(`
+  mutation rescan($name: String!, $parameters: String!, $scanId: Int!) {
+    retryScan(name: $name, parameters: $parameters, scanId: $scanId)
+  }
+`);
+
 export const ADD_DIVIDER = graphql(`
   mutation addDivider {
     addDivider

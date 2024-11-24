@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@apollo/client";
-import { ADD_DIVIDER, OMNIBUS, SCAN } from "./queries";
+import { ADD_DIVIDER, OMNIBUS, RESCAN, SCAN } from "./queries";
 import { OmnibusQuery, Scan, ScanDivider } from "./gql/graphql";
 import { useState } from "react";
 import { Toolbar } from "./Toolbar";
@@ -111,6 +111,9 @@ function groupScans(omnibus: OmnibusQuery) {
 }
 
 function App() {
+  const [currentGroupRevIndex, setCurrentGroupRevIndex] = useState<number>(0);
+  const [selectedScan, setSelectedScan] = useState<number | null>(null);
+
   const { data, error } = useQuery(OMNIBUS, { pollInterval: 1000 });
   const [scan] = useMutation(SCAN, {
     variables: {
@@ -119,7 +122,13 @@ function App() {
     },
   });
   const [addDivider] = useMutation(ADD_DIVIDER);
-  const [currentGroupRevIndex, setCurrentGroupRevIndex] = useState<number>(0);
+  const [rescan] = useMutation(RESCAN, {
+    variables: {
+      scanId: selectedScan!,
+      name: "pixma:MF240_10.60.1.74",
+      parameters: JSON.stringify({ "--resolution": "300" }),
+    },
+  });
 
   if (!data) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -132,15 +141,22 @@ function App() {
       <Toolbar
         isLatestGroup={currentGroupRevIndex === 0}
         onScan={() => scan()}
+        onRescan={() => rescan()}
         onDivider={() => addDivider()}
+        selectedScan={selectedScan}
       />
       <CurrentGroup
         group={groups[groups.length - (1 + currentGroupRevIndex)]}
+        selectedScan={selectedScan}
+        setSelectedScan={setSelectedScan}
       />
       <PreviousGroups
         groups={groups}
         currentGroupRevIndex={currentGroupRevIndex}
-        setCurrentGroupRevIndex={setCurrentGroupRevIndex}
+        setCurrentGroupRevIndex={(idx) => {
+          setCurrentGroupRevIndex(idx);
+          setSelectedScan(null);
+        }}
       />
     </AppWrapper>
   );
