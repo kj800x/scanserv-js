@@ -3,19 +3,29 @@ import { Scan } from "./gql/graphql";
 import { Grid } from "react-loader-spinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { useEffect, useRef } from "react";
 
 const CurrentGroupWrapper = styled.div`
+  flex: 1;
+  padding: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 100%;
+`;
+
+const PagesWrapper = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 1rem;
   gap: 1rem;
-  flex: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
+  height: 100%;
 `;
 
-const ScanWrapper = styled.div<{ selected: boolean }>`
+const ScanWrapper = styled.div<{
+  selected: boolean;
+  failed: boolean;
+  loading: boolean;
+}>`
   height: 100%;
   border: 2px solid black;
   aspect-ratio: 0.7225;
@@ -26,6 +36,8 @@ const ScanWrapper = styled.div<{ selected: boolean }>`
   align-items: center;
 
   ${({ selected }) => (selected ? `border-color: orange;` : ``)}
+  ${({ failed }) => (failed ? `background-color: #ffcece;` : ``)}
+  ${({ loading }) => (loading ? `background-color: #daffda;` : ``)}
 `;
 const ScanImage = styled.img`
   height: 100%;
@@ -55,7 +67,7 @@ function Error() {
 interface CurrentGroupProps {
   group: Scan[];
   selectedScan: number | null;
-  setSelectedScan: (index: number) => void;
+  setSelectedScan: (id: number | null) => void;
 }
 
 export function CurrentGroup({
@@ -63,21 +75,51 @@ export function CurrentGroup({
   selectedScan,
   setSelectedScan,
 }: CurrentGroupProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) {
+      console.log("no wrapper");
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      wrapper.scrollLeft = wrapper.scrollWidth;
+      console.log("resize observed");
+    });
+
+    observer.observe(wrapper);
+    console.log("registering observer");
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [wrapperRef]);
+
   return (
     <CurrentGroupWrapper>
-      {group.map((scan) => (
-        <ScanWrapper
-          key={scan.id}
-          selected={scan.id === selectedScan}
-          onClick={() => {
-            setSelectedScan(scan.id!);
-          }}
-        >
-          {scan.status === "PENDING" && <Loader />}
-          {scan.status === "FAILED" && <Error />}
-          {scan.status === "COMPLETE" && <ScanImage src={scan.path} />}
-        </ScanWrapper>
-      ))}
+      <PagesWrapper ref={wrapperRef}>
+        {group.map((scan) => (
+          <ScanWrapper
+            key={scan.id}
+            selected={scan.id === selectedScan}
+            loading={scan.status === "PENDING"}
+            failed={scan.status === "FAILED"}
+            onClick={() => {
+              if (selectedScan === scan.id) {
+                setSelectedScan(null);
+              } else {
+                setSelectedScan(scan.id!);
+              }
+            }}
+          >
+            {scan.status === "PENDING" && <Loader />}
+            {scan.status === "FAILED" && <Error />}
+            {scan.status === "COMPLETE" && <ScanImage src={scan.path} />}
+          </ScanWrapper>
+        ))}
+      </PagesWrapper>
     </CurrentGroupWrapper>
   );
 }

@@ -120,14 +120,18 @@ function App() {
       name: "pixma:MF240_10.60.1.74",
       parameters: JSON.stringify({ "--resolution": "300" }),
     },
+    refetchQueries: [{ query: OMNIBUS }],
   });
-  const [addDivider] = useMutation(ADD_DIVIDER);
+  const [addDivider] = useMutation(ADD_DIVIDER, {
+    refetchQueries: [{ query: OMNIBUS }],
+  });
   const [rescan] = useMutation(RESCAN, {
     variables: {
       scanId: selectedScan!,
       name: "pixma:MF240_10.60.1.74",
       parameters: JSON.stringify({ "--resolution": "300" }),
     },
+    refetchQueries: [{ query: OMNIBUS }],
   });
 
   if (!data) return <p>Loading...</p>;
@@ -140,9 +144,18 @@ function App() {
     <AppWrapper>
       <Toolbar
         isLatestGroup={currentGroupRevIndex === 0}
-        onScan={() => scan()}
-        onRescan={() => rescan()}
-        onDivider={() => addDivider()}
+        onScan={() => {
+          scan();
+          setSelectedScan(null);
+        }}
+        onRescan={() => {
+          rescan();
+          setSelectedScan(null);
+        }}
+        onDivider={() => {
+          addDivider();
+          setSelectedScan(null);
+        }}
         selectedScan={selectedScan}
       />
       <CurrentGroup
