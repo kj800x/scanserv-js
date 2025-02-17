@@ -22,9 +22,9 @@ const PagesWrapper = styled.div`
 `;
 
 const ScanWrapper = styled.div<{
-  selected: boolean;
-  failed: boolean;
-  loading: boolean;
+  $selected: boolean;
+  $failed: boolean;
+  $loading: boolean;
 }>`
   height: 100%;
   border: 2px solid black;
@@ -35,9 +35,9 @@ const ScanWrapper = styled.div<{
   justify-content: center;
   align-items: center;
 
-  ${({ selected }) => (selected ? `border-color: orange;` : ``)}
-  ${({ failed }) => (failed ? `background-color: #ffcece;` : ``)}
-  ${({ loading }) => (loading ? `background-color: #daffda;` : ``)}
+  ${({ $selected }) => ($selected ? `border-color: orange;` : ``)}
+  ${({ $failed }) => ($failed ? `background-color: #ffcece;` : ``)}
+  ${({ $loading }) => ($loading ? `background-color: #daffda;` : ``)}
 `;
 const ScanImage = styled.img`
   height: 100%;
@@ -103,9 +103,9 @@ export function CurrentGroup({
         {group.map((scan) => (
           <ScanWrapper
             key={scan.id}
-            selected={scan.id === selectedScan}
-            loading={scan.status === "PENDING"}
-            failed={scan.status === "FAILED"}
+            $selected={scan.id === selectedScan}
+            $loading={scan.status === "PENDING"}
+            $failed={scan.status === "FAILED"}
             onClick={() => {
               if (selectedScan === scan.id) {
                 setSelectedScan(null);

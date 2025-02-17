@@ -41,10 +41,17 @@ export type BookChanged = {
 export type MutationRoot = {
   __typename?: 'MutationRoot';
   addDivider: Scalars['Int']['output'];
+  commitGroup: Scalars['Int']['output'];
   createBook: Scalars['ID']['output'];
   deleteBook: Scalars['Boolean']['output'];
   retryScan: Scalars['Int']['output'];
   scan: Scalars['Int']['output'];
+};
+
+
+export type MutationRootCommitGroupArgs = {
+  scanIds: Array<Scalars['Int']['input']>;
+  title: Scalars['String']['input'];
 };
 
 
@@ -87,6 +94,7 @@ export type QueryRoot = {
 
 export type Scan = {
   __typename?: 'Scan';
+  group?: Maybe<ScanGroup>;
   id?: Maybe<Scalars['Int']['output']>;
   path: Scalars['String']['output'];
   scanParameters: Scalars['JSONObject']['output'];
@@ -99,6 +107,12 @@ export type ScanDivider = {
   __typename?: 'ScanDivider';
   id?: Maybe<Scalars['Int']['output']>;
   ts: Scalars['DateTime']['output'];
+};
+
+export type ScanGroup = {
+  __typename?: 'ScanGroup';
+  id: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
 };
 
 export type ScannerInfo = {
@@ -126,7 +140,7 @@ export type SubscriptionRootIntervalArgs = {
 export type OmnibusQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OmnibusQuery = { __typename?: 'QueryRoot', dividers: Array<{ __typename?: 'ScanDivider', id?: number | null, ts: any }>, scans: Array<{ __typename?: 'Scan', id?: number | null, path: string, status: string, scannedAt: any, scanner: string, scanParameters: any }> };
+export type OmnibusQuery = { __typename?: 'QueryRoot', dividers: Array<{ __typename?: 'ScanDivider', id?: number | null, ts: any }>, scans: Array<{ __typename?: 'Scan', id?: number | null, path: string, status: string, scannedAt: any, scanner: string, scanParameters: any, group?: { __typename?: 'ScanGroup', id: number, title: string } | null }> };
 
 export type ScanMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -150,8 +164,17 @@ export type AddDividerMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type AddDividerMutation = { __typename?: 'MutationRoot', addDivider: number };
 
+export type CommitGroupMutationVariables = Exact<{
+  scanIds: Array<Scalars['Int']['input']> | Scalars['Int']['input'];
+  title: Scalars['String']['input'];
+}>;
 
-export const OmnibusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"omnibus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dividers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"ts"}}]}},{"kind":"Field","name":{"kind":"Name","value":"scans"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"scannedAt"}},{"kind":"Field","name":{"kind":"Name","value":"scanner"}},{"kind":"Field","name":{"kind":"Name","value":"scanParameters"}}]}}]}}]} as unknown as DocumentNode<OmnibusQuery, OmnibusQueryVariables>;
+
+export type CommitGroupMutation = { __typename?: 'MutationRoot', commitGroup: number };
+
+
+export const OmnibusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"omnibus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dividers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"ts"}}]}},{"kind":"Field","name":{"kind":"Name","value":"scans"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"scannedAt"}},{"kind":"Field","name":{"kind":"Name","value":"scanner"}},{"kind":"Field","name":{"kind":"Name","value":"scanParameters"}},{"kind":"Field","name":{"kind":"Name","value":"group"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]}}]} as unknown as DocumentNode<OmnibusQuery, OmnibusQueryVariables>;
 export const ScanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"scan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"parameters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scan"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"parameters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"parameters"}}}]}]}}]} as unknown as DocumentNode<ScanMutation, ScanMutationVariables>;
 export const RescanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"rescan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"parameters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scanId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"retryScan"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"parameters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"parameters"}}},{"kind":"Argument","name":{"kind":"Name","value":"scanId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scanId"}}}]}]}}]} as unknown as DocumentNode<RescanMutation, RescanMutationVariables>;
 export const AddDividerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"addDivider"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addDivider"}}]}}]} as unknown as DocumentNode<AddDividerMutation, AddDividerMutationVariables>;
+export const CommitGroupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"commitGroup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scanIds"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"title"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"commitGroup"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"scanIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scanIds"}}},{"kind":"Argument","name":{"kind":"Name","value":"title"},"value":{"kind":"Variable","name":{"kind":"Name","value":"title"}}}]}]}}]} as unknown as DocumentNode<CommitGroupMutation, CommitGroupMutationVariables>;

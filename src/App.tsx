@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@apollo/client";
-import { ADD_DIVIDER, OMNIBUS, RESCAN, SCAN } from "./queries";
+import { ADD_DIVIDER, OMNIBUS, RESCAN, SCAN, COMMIT_GROUP } from "./queries";
 import { OmnibusQuery, Scan, ScanDivider } from "./gql/graphql";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Toolbar } from "./Toolbar";
 import { CurrentGroup } from "./CurrentGroup";
 import { PreviousGroups } from "./PreviousGroups";
@@ -11,6 +11,7 @@ const AppWrapper = styled.div`
   display: flex;
   flex-direction: column;
   position: absolute;
+  background-color: #d8d8d8;
   top: 0;
   left: 0;
   right: 0;
@@ -107,12 +108,17 @@ function groupScans(omnibus: OmnibusQuery) {
 
   groups.push(currentGroup);
 
-  return groups;
+  return groups.filter(
+    (group) => group.length === 0 || group.every((scan) => !scan.group)
+  );
 }
 
 function App() {
   const [currentGroupRevIndex, setCurrentGroupRevIndex] = useState<number>(0);
   const [selectedScan, setSelectedScan] = useState<number | null>(null);
+  const [groupTitles, setGroupTitles] = useState<Map<number, string>>(
+    new Map()
+  );
 
   const { data, error } = useQuery(OMNIBUS, { pollInterval: 1000 });
   const [scan] = useMutation(SCAN, {
@@ -134,11 +140,42 @@ function App() {
     refetchQueries: [{ query: OMNIBUS }],
   });
 
+  const currentGroupScanIds = useMemo(() => {
+    if (!data) return [];
+    // FIXME: Running groupScans twice
+    const groups = groupScans(data);
+    if (!groups || groups.length === 0) {
+      return [];
+    }
+
+    const group = groups[groups.length - (1 + currentGroupRevIndex)];
+    if (!group || group.length === 0) {
+      return [];
+    }
+
+    return group.map((scan) => scan.id);
+  }, [data, currentGroupRevIndex]);
+
+  const currentGroupLeadingScanId = useMemo(() => {
+    if (!currentGroupScanIds || currentGroupScanIds.length === 0) {
+      return null;
+    }
+
+    return currentGroupScanIds[0];
+  }, [currentGroupScanIds]);
+
+  const [commit] = useMutation(COMMIT_GROUP, {
+    variables: {
+      scanIds: currentGroupScanIds as number[],
+      title: groupTitles.get(currentGroupLeadingScanId!) || "",
+    },
+    refetchQueries: [{ query: OMNIBUS }],
+  });
+
   if (!data) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
   const groups = groupScans(data);
-  console.log({ currentGroupRevIndex });
 
   return (
     <AppWrapper>
@@ -156,7 +193,20 @@ function App() {
           addDivider();
           setSelectedScan(null);
         }}
+        onCommit={() => {
+          commit();
+          setSelectedScan(null);
+          setCurrentGroupRevIndex((x) => (x > 0 ? x - 1 : x));
+        }}
         selectedScan={selectedScan}
+        title={groupTitles.get(currentGroupLeadingScanId!) || ""}
+        setTitle={(newTitle) => {
+          if (currentGroupLeadingScanId) {
+            const mapCopy = new Map(groupTitles);
+            mapCopy.set(currentGroupLeadingScanId, newTitle);
+            setGroupTitles(mapCopy);
+          }
+        }}
       />
       <CurrentGroup
         group={groups[groups.length - (1 + currentGroupRevIndex)]}
@@ -170,6 +220,7 @@ function App() {
           setCurrentGroupRevIndex(idx);
           setSelectedScan(null);
         }}
+        groupTitles={groupTitles}
       />
     </AppWrapper>
   );

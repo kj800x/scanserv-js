@@ -14,10 +14,11 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 const documents = {
-    "\n  query omnibus {\n    dividers {\n      id\n      ts\n    }\n    scans {\n      id\n      path\n      status\n      scannedAt\n      scanner\n      scanParameters\n    }\n  }\n": types.OmnibusDocument,
+    "\n  query omnibus {\n    dividers {\n      id\n      ts\n    }\n    scans {\n      id\n      path\n      status\n      scannedAt\n      scanner\n      scanParameters\n      group {\n        id\n        title\n      }\n    }\n  }\n": types.OmnibusDocument,
     "\n  mutation scan($name: String!, $parameters: String!) {\n    scan(name: $name, parameters: $parameters)\n  }\n": types.ScanDocument,
     "\n  mutation rescan($name: String!, $parameters: String!, $scanId: Int!) {\n    retryScan(name: $name, parameters: $parameters, scanId: $scanId)\n  }\n": types.RescanDocument,
     "\n  mutation addDivider {\n    addDivider\n  }\n": types.AddDividerDocument,
+    "\n  mutation commitGroup($scanIds: [Int!]!, $title: String!) {\n    commitGroup(scanIds: $scanIds, title: $title)\n  }\n": types.CommitGroupDocument,
 };
 
 /**
@@ -37,7 +38,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query omnibus {\n    dividers {\n      id\n      ts\n    }\n    scans {\n      id\n      path\n      status\n      scannedAt\n      scanner\n      scanParameters\n    }\n  }\n"): (typeof documents)["\n  query omnibus {\n    dividers {\n      id\n      ts\n    }\n    scans {\n      id\n      path\n      status\n      scannedAt\n      scanner\n      scanParameters\n    }\n  }\n"];
+export function graphql(source: "\n  query omnibus {\n    dividers {\n      id\n      ts\n    }\n    scans {\n      id\n      path\n      status\n      scannedAt\n      scanner\n      scanParameters\n      group {\n        id\n        title\n      }\n    }\n  }\n"): (typeof documents)["\n  query omnibus {\n    dividers {\n      id\n      ts\n    }\n    scans {\n      id\n      path\n      status\n      scannedAt\n      scanner\n      scanParameters\n      group {\n        id\n        title\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -50,6 +51,10 @@ export function graphql(source: "\n  mutation rescan($name: String!, $parameters
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation addDivider {\n    addDivider\n  }\n"): (typeof documents)["\n  mutation addDivider {\n    addDivider\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation commitGroup($scanIds: [Int!]!, $title: String!) {\n    commitGroup(scanIds: $scanIds, title: $title)\n  }\n"): (typeof documents)["\n  mutation commitGroup($scanIds: [Int!]!, $title: String!) {\n    commitGroup(scanIds: $scanIds, title: $title)\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

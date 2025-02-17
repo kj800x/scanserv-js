@@ -13,6 +13,10 @@ export const OMNIBUS = graphql(`
       scannedAt
       scanner
       scanParameters
+      group {
+        id
+        title
+      }
     }
   }
 `);
@@ -32,5 +36,11 @@ export const RESCAN = graphql(`
 export const ADD_DIVIDER = graphql(`
   mutation addDivider {
     addDivider
+  }
+`);
+
+export const COMMIT_GROUP = graphql(`
+  mutation commitGroup($scanIds: [Int!]!, $title: String!) {
+    commitGroup(scanIds: $scanIds, title: $title)
   }
 `);

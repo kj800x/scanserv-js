@@ -2,17 +2,29 @@ import styled from "styled-components";
 
 const ToolbarWrapper = styled.div`
   display: flex;
+  flex-direction: column;
+  background-color: #6a9fb5;
+
+  border-bottom: 5px solid black;
+`;
+
+const ToolbarRow = styled.div`
+  display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   padding: 1rem;
   gap: 1rem;
-  border-bottom: 5px solid black;
 
   button {
     padding: 0.5rem 1rem;
     font-size: 2rem;
     cursor: pointer;
+  }
+
+  input {
+    padding: 0.5rem 1rem;
+    font-size: 2rem;
   }
 `;
 
@@ -21,7 +33,10 @@ interface ToolbarProps {
   onScan: () => void;
   onRescan: () => void;
   onDivider: () => void;
+  onCommit: () => void;
   selectedScan: number | null;
+  title: string;
+  setTitle: (title: string) => void;
 }
 
 export function Toolbar({
@@ -29,21 +44,37 @@ export function Toolbar({
   onScan,
   onRescan,
   onDivider,
+  onCommit,
   selectedScan,
+  title,
+  setTitle,
 }: ToolbarProps) {
   return (
     <ToolbarWrapper>
-      {selectedScan == null ? (
-        <button onClick={onScan} disabled={!isLatestGroup}>
-          Scan
-        </button>
-      ) : (
-        <button onClick={onRescan}>Rescan</button>
-      )}
+      <ToolbarRow>
+        {selectedScan == null ? (
+          <button onClick={onScan} disabled={!isLatestGroup}>
+            Scan
+          </button>
+        ) : (
+          <button onClick={onRescan}>Rescan</button>
+        )}
 
-      <button onClick={onDivider} disabled={!isLatestGroup}>
-        Add divider
-      </button>
+        <button onClick={onDivider} disabled={!isLatestGroup}>
+          Add divider
+        </button>
+      </ToolbarRow>
+      <ToolbarRow>
+        <input
+          type="text"
+          value={title}
+          name="title"
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Group title"
+        />
+
+        <button onClick={onCommit}>Commit</button>
+      </ToolbarRow>
     </ToolbarWrapper>
   );
 }
