@@ -147,3 +147,12 @@ export const CROP_SCAN = gql`
     cropScan(scanId: $scanId, x: $x, y: $y, width: $width, height: $height)
   }
 `;
+
+export const SCANNERS = gql`
+  query Scanners {
+    scanners {
+      name
+      description
+    }
+  }
+`;
