@@ -8,7 +8,7 @@ const PreviousGroupsWrapper = styled.div`
   padding: 1rem;
   gap: 1rem;
   border-top: 5px solid black;
-  overflow-x: auto;
+  overflow-x: scroll;
   background-color: #6a9fb5;
 `;
 
