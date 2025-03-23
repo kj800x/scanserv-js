@@ -3,7 +3,7 @@ import { Scan } from "./gql/graphql";
 import { Grid } from "react-loader-spinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 const CurrentGroupWrapper = styled.div`
   flex: 1;
@@ -65,7 +65,7 @@ function Error() {
 }
 
 interface CurrentGroupProps {
-  group: Scan[];
+  group: undefined | Scan[];
   selectedScan: number | null;
   setSelectedScan: (id: number | null) => void;
 }
@@ -77,25 +77,31 @@ export function CurrentGroup({
 }: CurrentGroupProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) {
-      console.log("no wrapper");
-      return;
-    }
+  // FIXME: This isn't working
+  // useEffect(() => {
+  //   const wrapper = wrapperRef.current;
+  //   if (!wrapper) {
+  //     return;
+  //   }
 
-    const observer = new ResizeObserver(() => {
-      wrapper.scrollLeft = wrapper.scrollWidth;
-      console.log("resize observed");
-    });
+  //   const observer = new ResizeObserver(() => {
+  //     wrapper.scrollLeft = wrapper.scrollWidth;
+  //   });
 
-    observer.observe(wrapper);
-    console.log("registering observer");
+  //   observer.observe(wrapper);
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [wrapperRef]);
+  //   return () => {
+  //     observer.disconnect();
+  //   };
+  // }, [wrapperRef]);
+
+  if (!group) {
+    return (
+      <CurrentGroupWrapper>
+        <PagesWrapper />
+      </CurrentGroupWrapper>
+    );
+  }
 
   return (
     <CurrentGroupWrapper>

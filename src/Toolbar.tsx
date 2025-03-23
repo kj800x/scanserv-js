@@ -34,6 +34,7 @@ interface ToolbarProps {
   onRescan: () => void;
   onDivider: () => void;
   onCommit: () => void;
+  canCommit: boolean;
   selectedScan: number | null;
   title: string;
   setTitle: (title: string) => void;
@@ -45,6 +46,7 @@ export function Toolbar({
   onRescan,
   onDivider,
   onCommit,
+  canCommit,
   selectedScan,
   title,
   setTitle,
@@ -73,7 +75,9 @@ export function Toolbar({
           placeholder="Group title"
         />
 
-        <button onClick={onCommit}>Commit</button>
+        <button onClick={onCommit} disabled={!canCommit}>
+          Commit
+        </button>
       </ToolbarRow>
     </ToolbarWrapper>
   );
