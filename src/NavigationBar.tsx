@@ -1,27 +1,37 @@
 import React from "react";
 import styled from "styled-components";
 
-const NavBarContainer = styled.div`
+const NavContainer = styled.nav`
   display: flex;
-  background-color: #333;
-  padding: 10px;
-  color: white;
+  background-color: #343a40;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const NavButton = styled.button<{ active: boolean }>`
-  background-color: ${(props) => (props.active ? "#555" : "transparent")};
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  margin-right: 10px;
-  border-radius: 4px;
+const NavItem = styled.div<{ active: boolean }>`
+  padding: 16px 24px;
+  color: ${(props) => (props.active ? "white" : "#a8a9a9")};
   cursor: pointer;
-  font-size: 16px;
-  font-weight: ${(props) => (props.active ? "bold" : "normal")};
+  font-weight: bold;
+  position: relative;
 
   &:hover {
-    background-color: ${(props) => (props.active ? "#555" : "#444")};
+    color: white;
   }
+
+  ${(props) =>
+    props.active &&
+    `
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: #007bff;
+    }
+  `}
 `;
 
 interface NavigationBarProps {
@@ -34,19 +44,22 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   onRouteChange,
 }) => {
   return (
-    <NavBarContainer>
-      <NavButton
-        active={currentRoute === "/"}
-        onClick={() => onRouteChange("/")}
+    <NavContainer>
+      <NavItem active={currentRoute === "/"} onClick={() => onRouteChange("/")}>
+        Scan
+      </NavItem>
+      <NavItem
+        active={currentRoute === "/edit"}
+        onClick={() => onRouteChange("/edit")}
       >
-        In-Progress Scans
-      </NavButton>
-      <NavButton
-        active={currentRoute === "/finalized-groups"}
-        onClick={() => onRouteChange("/finalized-groups")}
+        Edit
+      </NavItem>
+      <NavItem
+        active={currentRoute === "/export"}
+        onClick={() => onRouteChange("/export")}
       >
-        Finalized Groups
-      </NavButton>
-    </NavBarContainer>
+        Export
+      </NavItem>
+    </NavContainer>
   );
 };
