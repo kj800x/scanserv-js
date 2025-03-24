@@ -15,15 +15,14 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  */
 type Documents = {
     "\n  query CheckConnectivity {\n    __typename\n  }\n": typeof types.CheckConnectivityDocument,
-    "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n        comment\n        createdAt\n        status\n        tags\n        updatedAt\n      }\n      rotation\n      cropCoordinates\n      scanParameters\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n": typeof types.OmnibusQueryDocument,
-    "\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n": typeof types.GroupsDocument,
+    "\n  query OmnibusQuery {\n    incompleteGroups {\n      id\n      title\n      comment\n      createdAt\n      status\n      tags\n      updatedAt\n      scans {\n        id\n        status\n        path\n        scannedAt\n        scanner\n        rotation\n        cropCoordinates\n        scanParameters\n        originalPath {\n          path\n        }\n        editedPath {\n          path\n        }\n      }\n    }\n  }\n": typeof types.OmnibusQueryDocument,
+    "\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      comment\n      createdAt\n      status\n      tags\n      updatedAt\n      scans {\n        id\n        status\n        path\n        scannedAt\n        scanner\n        rotation\n        cropCoordinates\n        scanParameters\n        originalPath {\n          path\n        }\n        editedPath {\n          path\n        }\n      }\n    }\n  }\n": typeof types.GroupsDocument,
     "\n  query GroupById($id: Int!) {\n    groupById(id: $id) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n": typeof types.GroupByIdDocument,
     "\n  query ScansByGroup($groupId: Int!) {\n    scansByGroup(groupId: $groupId) {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      rotation\n      cropCoordinates\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n  }\n": typeof types.ScansByGroupDocument,
     "\n  mutation Scan($name: String!, $parameters: String!, $groupId: Int) {\n    scan(name: $name, parameters: $parameters, groupId: $groupId)\n  }\n": typeof types.ScanDocument,
     "\n  mutation Rescan($scanId: Int!, $name: String!, $parameters: String!) {\n    retryScan(scanId: $scanId, name: $name, parameters: $parameters)\n  }\n": typeof types.RescanDocument,
-    "\n  mutation AddDivider {\n    addDivider\n  }\n": typeof types.AddDividerDocument,
     "\n  mutation CommitGroup($scanIds: [Int!]!, $title: String!) {\n    commitGroup(scanIds: $scanIds, title: $title)\n  }\n": typeof types.CommitGroupDocument,
-    "\n  mutation CreateGroup($title: String!, $status: String!) {\n    createGroup(title: $title, status: $status)\n  }\n": typeof types.CreateGroupDocument,
+    "\n  mutation CreateGroup($status: String!) {\n    createGroup(status: $status)\n  }\n": typeof types.CreateGroupDocument,
     "\n  mutation UpdateGroup(\n    $id: Int!\n    $title: String\n    $status: String\n    $comment: String\n    $tags: [String!]\n  ) {\n    updateGroup(\n      id: $id\n      title: $title\n      status: $status\n      comment: $comment\n      tags: $tags\n    )\n  }\n": typeof types.UpdateGroupDocument,
     "\n  mutation AddScanToGroup($scanId: Int!, $groupId: Int!) {\n    addScanToGroup(scanId: $scanId, groupId: $groupId)\n  }\n": typeof types.AddScanToGroupDocument,
     "\n  mutation RotateScan($scanId: Int!, $rotation: Int!) {\n    rotateScan(scanId: $scanId, rotation: $rotation)\n  }\n": typeof types.RotateScanDocument,
@@ -32,15 +31,14 @@ type Documents = {
 };
 const documents: Documents = {
     "\n  query CheckConnectivity {\n    __typename\n  }\n": types.CheckConnectivityDocument,
-    "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n        comment\n        createdAt\n        status\n        tags\n        updatedAt\n      }\n      rotation\n      cropCoordinates\n      scanParameters\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n": types.OmnibusQueryDocument,
-    "\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n": types.GroupsDocument,
+    "\n  query OmnibusQuery {\n    incompleteGroups {\n      id\n      title\n      comment\n      createdAt\n      status\n      tags\n      updatedAt\n      scans {\n        id\n        status\n        path\n        scannedAt\n        scanner\n        rotation\n        cropCoordinates\n        scanParameters\n        originalPath {\n          path\n        }\n        editedPath {\n          path\n        }\n      }\n    }\n  }\n": types.OmnibusQueryDocument,
+    "\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      comment\n      createdAt\n      status\n      tags\n      updatedAt\n      scans {\n        id\n        status\n        path\n        scannedAt\n        scanner\n        rotation\n        cropCoordinates\n        scanParameters\n        originalPath {\n          path\n        }\n        editedPath {\n          path\n        }\n      }\n    }\n  }\n": types.GroupsDocument,
     "\n  query GroupById($id: Int!) {\n    groupById(id: $id) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n": types.GroupByIdDocument,
     "\n  query ScansByGroup($groupId: Int!) {\n    scansByGroup(groupId: $groupId) {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      rotation\n      cropCoordinates\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n  }\n": types.ScansByGroupDocument,
     "\n  mutation Scan($name: String!, $parameters: String!, $groupId: Int) {\n    scan(name: $name, parameters: $parameters, groupId: $groupId)\n  }\n": types.ScanDocument,
     "\n  mutation Rescan($scanId: Int!, $name: String!, $parameters: String!) {\n    retryScan(scanId: $scanId, name: $name, parameters: $parameters)\n  }\n": types.RescanDocument,
-    "\n  mutation AddDivider {\n    addDivider\n  }\n": types.AddDividerDocument,
     "\n  mutation CommitGroup($scanIds: [Int!]!, $title: String!) {\n    commitGroup(scanIds: $scanIds, title: $title)\n  }\n": types.CommitGroupDocument,
-    "\n  mutation CreateGroup($title: String!, $status: String!) {\n    createGroup(title: $title, status: $status)\n  }\n": types.CreateGroupDocument,
+    "\n  mutation CreateGroup($status: String!) {\n    createGroup(status: $status)\n  }\n": types.CreateGroupDocument,
     "\n  mutation UpdateGroup(\n    $id: Int!\n    $title: String\n    $status: String\n    $comment: String\n    $tags: [String!]\n  ) {\n    updateGroup(\n      id: $id\n      title: $title\n      status: $status\n      comment: $comment\n      tags: $tags\n    )\n  }\n": types.UpdateGroupDocument,
     "\n  mutation AddScanToGroup($scanId: Int!, $groupId: Int!) {\n    addScanToGroup(scanId: $scanId, groupId: $groupId)\n  }\n": types.AddScanToGroupDocument,
     "\n  mutation RotateScan($scanId: Int!, $rotation: Int!) {\n    rotateScan(scanId: $scanId, rotation: $rotation)\n  }\n": types.RotateScanDocument,
@@ -69,11 +67,11 @@ export function graphql(source: "\n  query CheckConnectivity {\n    __typename\n
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n        comment\n        createdAt\n        status\n        tags\n        updatedAt\n      }\n      rotation\n      cropCoordinates\n      scanParameters\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n"): (typeof documents)["\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n        comment\n        createdAt\n        status\n        tags\n        updatedAt\n      }\n      rotation\n      cropCoordinates\n      scanParameters\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n"];
+export function graphql(source: "\n  query OmnibusQuery {\n    incompleteGroups {\n      id\n      title\n      comment\n      createdAt\n      status\n      tags\n      updatedAt\n      scans {\n        id\n        status\n        path\n        scannedAt\n        scanner\n        rotation\n        cropCoordinates\n        scanParameters\n        originalPath {\n          path\n        }\n        editedPath {\n          path\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query OmnibusQuery {\n    incompleteGroups {\n      id\n      title\n      comment\n      createdAt\n      status\n      tags\n      updatedAt\n      scans {\n        id\n        status\n        path\n        scannedAt\n        scanner\n        rotation\n        cropCoordinates\n        scanParameters\n        originalPath {\n          path\n        }\n        editedPath {\n          path\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n"): (typeof documents)["\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n"];
+export function graphql(source: "\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      comment\n      createdAt\n      status\n      tags\n      updatedAt\n      scans {\n        id\n        status\n        path\n        scannedAt\n        scanner\n        rotation\n        cropCoordinates\n        scanParameters\n        originalPath {\n          path\n        }\n        editedPath {\n          path\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      comment\n      createdAt\n      status\n      tags\n      updatedAt\n      scans {\n        id\n        status\n        path\n        scannedAt\n        scanner\n        rotation\n        cropCoordinates\n        scanParameters\n        originalPath {\n          path\n        }\n        editedPath {\n          path\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -93,15 +91,11 @@ export function graphql(source: "\n  mutation Rescan($scanId: Int!, $name: Strin
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation AddDivider {\n    addDivider\n  }\n"): (typeof documents)["\n  mutation AddDivider {\n    addDivider\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
 export function graphql(source: "\n  mutation CommitGroup($scanIds: [Int!]!, $title: String!) {\n    commitGroup(scanIds: $scanIds, title: $title)\n  }\n"): (typeof documents)["\n  mutation CommitGroup($scanIds: [Int!]!, $title: String!) {\n    commitGroup(scanIds: $scanIds, title: $title)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation CreateGroup($title: String!, $status: String!) {\n    createGroup(title: $title, status: $status)\n  }\n"): (typeof documents)["\n  mutation CreateGroup($title: String!, $status: String!) {\n    createGroup(title: $title, status: $status)\n  }\n"];
+export function graphql(source: "\n  mutation CreateGroup($status: String!) {\n    createGroup(status: $status)\n  }\n"): (typeof documents)["\n  mutation CreateGroup($status: String!) {\n    createGroup(status: $status)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

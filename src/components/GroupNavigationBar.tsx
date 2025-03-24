@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Scan } from "../gql/graphql";
+import { ScanGroup } from "../gql/graphql";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faFileLines } from "@fortawesome/free-solid-svg-icons";
 
@@ -54,50 +54,47 @@ const GroupPageCount = styled.div`
 `;
 
 interface GroupNavigationBarProps {
-  groups: Scan[][];
-  selectedGroupIndex: number;
-  onSelectGroup: (index: number) => void;
-  onCreateNewGroup: () => void;
-  groupTitles?: Map<number, string>;
+  groups: ScanGroup[];
+  selectedGroupId: number | null;
+  onSelectGroup: (id: number) => void;
+  onCreateNewGroup?: () => void;
 }
 
 export function GroupNavigationBar({
   groups,
-  selectedGroupIndex,
+  selectedGroupId,
   onSelectGroup,
   onCreateNewGroup,
-  groupTitles = new Map(),
 }: GroupNavigationBarProps) {
+  console.log(groups);
+
   return (
     <GroupNavigationBarWrapper>
       {groups.map((group, index) => {
-        const firstScanId = group.length > 0 ? group[0].id! : null;
-        const title =
-          firstScanId !== null ? groupTitles.get(firstScanId) : null;
-
         return (
           <GroupButton
             key={index}
-            onClick={() => onSelectGroup(index)}
-            selected={selectedGroupIndex === index}
+            onClick={() => onSelectGroup(group.id)}
+            selected={selectedGroupId === group.id}
           >
             <FontAwesomeIcon icon={faFileLines} size="2x" />
 
-            {title ? (
-              <GroupLabel>{title}</GroupLabel>
+            {group.title ? (
+              <GroupLabel>{group.title}</GroupLabel>
             ) : (
               <GroupLabel>Group {index + 1}</GroupLabel>
             )}
 
-            <GroupPageCount>{group.length} pages</GroupPageCount>
+            <GroupPageCount>{group.scans.length} pages</GroupPageCount>
           </GroupButton>
         );
       })}
-
-      <NewGroupButton onClick={onCreateNewGroup} selected={false}>
-        <FontAwesomeIcon icon={faPlus} size="2x" />
-        <GroupLabel>New Group</GroupLabel>
-      </NewGroupButton>
+      {onCreateNewGroup && (
+        <NewGroupButton onClick={onCreateNewGroup} selected={false}>
+          <FontAwesomeIcon icon={faPlus} size="2x" />
+          <GroupLabel>New Group</GroupLabel>
+        </NewGroupButton>
+      )}
     </GroupNavigationBarWrapper>
   );
 }

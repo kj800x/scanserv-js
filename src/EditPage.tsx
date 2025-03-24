@@ -6,12 +6,13 @@ import {
   ROTATE_SCAN,
   COMMIT_GROUP,
 } from "./queries";
-import { Scan, ScanGroup } from "./gql/graphql";
+import { ScanGroup } from "./gql/graphql";
 import { useMemo, useState, useContext, useCallback } from "react";
 import styled from "styled-components";
 import { FullPageError } from "./components/FullPageError";
 import { ServerConnectionContext } from "./App";
 import { GroupNavigationBar } from "./components/GroupNavigationBar";
+import { CurrentGroup } from "./CurrentGroup";
 
 const PageWrapper = styled.div`
   display: flex;
@@ -61,33 +62,6 @@ const ScansContainer = styled.div`
   padding: 10px;
   flex: 2;
   overflow-y: auto;
-`;
-
-const ScanPreview = styled.div<{ selected: boolean }>`
-  margin: 10px;
-  padding: 5px;
-  border: ${(props) =>
-    props.selected ? "3px solid #007bff" : "1px solid #ccc"};
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-  width: 200px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    border-color: #007bff;
-  }
-`;
-
-const ScanImage = styled.img`
-  width: 100%;
-  height: 150px;
-  object-fit: contain;
-`;
-
-const ScanInfo = styled.div`
-  padding: 5px;
-  font-size: 12px;
 `;
 
 const EditSidebar = styled.div`
@@ -143,7 +117,7 @@ const Tag = styled.span`
 `;
 
 export function EditPage() {
-  const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [selectedScan, setSelectedScan] = useState<number | null>(null);
   const [groupTitle, setGroupTitle] = useState<string>("");
   const [groupComment, setGroupComment] = useState<string>("");
@@ -162,25 +136,13 @@ export function EditPage() {
     pollInterval: 1000,
   });
 
-  // Fetch scans for the selected group
-  const {
-    data: scansData,
-    loading: scansLoading,
-    error: scansError,
-    refetch: refetchScans,
-  } = useQuery(SCANS_BY_GROUP, {
-    variables: { groupId: selectedGroup },
-    skip: !selectedGroup,
-    pollInterval: 1000,
-  });
-
   const [updateGroup, { error: updateError }] = useMutation(UPDATE_GROUP, {
     refetchQueries: [{ query: GROUPS, variables: { status: "scanning" } }],
   });
 
   const [rotateScan, { error: rotateError }] = useMutation(ROTATE_SCAN, {
     refetchQueries: [
-      { query: SCANS_BY_GROUP, variables: { groupId: selectedGroup } },
+      { query: SCANS_BY_GROUP, variables: { groupId: selectedGroupId } },
     ],
   });
 
@@ -192,32 +154,31 @@ export function EditPage() {
   });
 
   // Combine all potential errors
-  const error =
-    groupsError || scansError || updateError || rotateError || commitError;
+  const error = groupsError || updateError || rotateError || commitError;
 
   const groups: ScanGroup[] = useMemo(() => {
     return groupsData?.groups || [];
   }, [groupsData]);
 
-  const scans: Scan[] = useMemo(() => {
-    return scansData?.scansByGroup || [];
-  }, [scansData]);
+  const currentGroup = useMemo<ScanGroup | null>(() => {
+    return groups.find((g) => g.id === selectedGroupId) || null;
+  }, [groups, selectedGroupId]);
 
   // Update local state when a group is selected
   useMemo(() => {
-    if (selectedGroup) {
-      const group = groups.find((g) => g.id === selectedGroup);
+    if (selectedGroupId) {
+      const group = groups.find((g) => g.id === selectedGroupId);
       if (group) {
         setGroupTitle(group.title || "");
         setGroupComment(group.comment || "");
         setTags(group.tags || []);
       }
     }
-  }, [selectedGroup, groups]);
+  }, [selectedGroupId, groups]);
 
   const handleRotateLeft = () => {
     if (selectedScan) {
-      const scan = scans.find((s) => s.id === selectedScan);
+      const scan = currentGroup?.scans.find((s) => s.id === selectedScan);
       if (scan) {
         const currentRotation = scan.rotation || 0;
         const newRotation = (currentRotation - 90 + 360) % 360;
@@ -233,7 +194,7 @@ export function EditPage() {
 
   const handleRotateRight = () => {
     if (selectedScan) {
-      const scan = scans.find((s) => s.id === selectedScan);
+      const scan = currentGroup?.scans.find((s) => s.id === selectedScan);
       if (scan) {
         const currentRotation = scan.rotation || 0;
         const newRotation = (currentRotation + 90) % 360;
@@ -248,10 +209,10 @@ export function EditPage() {
   };
 
   const handleSaveGroup = () => {
-    if (selectedGroup) {
+    if (selectedGroupId) {
       updateGroup({
         variables: {
-          id: selectedGroup,
+          id: selectedGroupId,
           title: groupTitle,
           comment: groupComment,
           tags: tags,
@@ -261,15 +222,15 @@ export function EditPage() {
   };
 
   const handleFinalizeGroup = () => {
-    if (selectedGroup && scans.length > 0) {
-      const scanIds = scans.map((scan) => scan.id);
+    if (selectedGroupId && currentGroup && currentGroup.scans.length > 0) {
+      const scanIds = currentGroup.scans.map((scan) => scan.id);
       commitGroup({
         variables: {
           scanIds,
-          title: groupTitle || `Group ${selectedGroup}`,
+          title: groupTitle || `Group ${selectedGroupId}`,
         },
       });
-      setSelectedGroup(null);
+      setSelectedGroupId(null);
       setSelectedScan(null);
     }
   };
@@ -287,15 +248,12 @@ export function EditPage() {
 
   const handleRetry = useCallback(() => {
     refetchGroups();
-    if (selectedGroup) {
-      refetchScans();
-    }
-  }, [refetchGroups, refetchScans, selectedGroup]);
+  }, [refetchGroups]);
 
   // Function to handle group selection from the navigation bar
   const handleSelectGroup = useCallback(
     (groupId: number | null) => {
-      setSelectedGroup(groupId);
+      setSelectedGroupId(groupId);
       setSelectedScan(null);
 
       // Reset form fields when changing groups
@@ -315,24 +273,8 @@ export function EditPage() {
     [groups]
   );
 
-  // Group the groups by creation time
-  const orderedGroups = useMemo(() => {
-    if (!groups) return [];
-
-    return [...groups].sort(
-      (a, b) =>
-        new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime()
-    );
-  }, [groups]);
-
-  // Track the selected group index
-  const selectedGroupIndex = useMemo(() => {
-    if (!selectedGroup || !orderedGroups.length) return 0;
-    return orderedGroups.findIndex((group) => group.id === selectedGroup) || 0;
-  }, [selectedGroup, orderedGroups]);
-
-  // Define canFinalize condition
-  const canFinalize = selectedGroup && scans.length > 0;
+  const canFinalize =
+    selectedGroupId && currentGroup && currentGroup.scans.length > 0;
 
   if (groupsLoading) return <div>Loading groups...</div>;
 
@@ -351,12 +293,12 @@ export function EditPage() {
   return (
     <PageWrapper>
       <EditPageToolbar>
-        <ToolbarButton onClick={handleSaveGroup} disabled={!selectedGroup}>
+        <ToolbarButton onClick={handleSaveGroup} disabled={!selectedGroupId}>
           Save Changes
         </ToolbarButton>
         <ToolbarButton
           onClick={handleFinalizeGroup}
-          disabled={!selectedGroup || !canFinalize}
+          disabled={!selectedGroupId || !canFinalize}
         >
           Finalize Group
         </ToolbarButton>
@@ -364,37 +306,22 @@ export function EditPage() {
 
       <MainContent>
         <ScansContainer>
-          {!selectedGroup ? (
+          {!selectedGroupId ? (
             <div style={{ padding: "20px" }}>
               Select a group to edit its scans
             </div>
-          ) : scansLoading ? (
-            <div>Loading scans...</div>
-          ) : scans.length === 0 ? (
+          ) : currentGroup && currentGroup.scans.length === 0 ? (
             <div style={{ padding: "20px" }}>No scans in this group</div>
           ) : (
-            scans.map((scan) => (
-              <ScanPreview
-                key={scan.id}
-                selected={scan.id === selectedScan}
-                onClick={() => setSelectedScan(scan.id!)}
-              >
-                <ScanImage
-                  src={scan.path}
-                  alt={`Scan ${scan.id}`}
-                  style={{ transform: `rotate(${scan.rotation || 0}deg)` }}
-                />
-                <ScanInfo>
-                  ID: {scan.id}
-                  <br />
-                  {new Date(scan.scannedAt).toLocaleString()}
-                </ScanInfo>
-              </ScanPreview>
-            ))
+            <CurrentGroup
+              group={currentGroup}
+              selectedScanId={selectedScan}
+              setSelectedScanId={setSelectedScan}
+            />
           )}
         </ScansContainer>
 
-        {selectedGroup && (
+        {selectedGroupId && (
           <EditSidebar>
             {selectedScan ? (
               <EditControls>
@@ -487,26 +414,9 @@ export function EditPage() {
       </MainContent>
       {!groupsLoading && !groupsError && (
         <GroupNavigationBar
-          groups={orderedGroups.map((group) => {
-            return scans.filter((scan) => scan.group?.id === group.id) || [];
-          })}
-          selectedGroupIndex={selectedGroupIndex}
-          onSelectGroup={(index) => {
-            if (index >= 0 && index < orderedGroups.length) {
-              const group = orderedGroups[index];
-              if (group && typeof group.id === "number") {
-                handleSelectGroup(group.id);
-              }
-            }
-          }}
-          onCreateNewGroup={() => {}} // No new group creation in Edit page
-          groupTitles={
-            new Map(
-              groups
-                .filter((group) => group.id !== null && group.id !== undefined)
-                .map((group) => [Number(group.id), group.title || ""])
-            )
-          }
+          groups={groups}
+          selectedGroupId={selectedGroupId}
+          onSelectGroup={handleSelectGroup}
         />
       )}
     </PageWrapper>

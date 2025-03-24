@@ -1,9 +1,8 @@
 import styled from "styled-components";
-import { Scan } from "./gql/graphql";
+import { ScanGroup } from "./gql/graphql";
 import { Grid } from "react-loader-spinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
-import { useRef } from "react";
 
 const CurrentGroupWrapper = styled.div`
   flex: 1;
@@ -25,10 +24,13 @@ const ScanWrapper = styled.div<{
   $selected: boolean;
   $failed: boolean;
   $loading: boolean;
+  $rotation: number;
 }>`
   height: 100%;
   border: 2px solid black;
-  aspect-ratio: 0.7225;
+  aspect-ratio: ${({ $rotation }) =>
+    $rotation % 180 === 90 ? "1.38408304" : "0.7225"};
+
   max-height: 800px;
 
   display: flex;
@@ -39,8 +41,9 @@ const ScanWrapper = styled.div<{
   ${({ $failed }) => ($failed ? `background-color: #ffcece;` : ``)}
   ${({ $loading }) => ($loading ? `background-color: #daffda;` : ``)}
 `;
-const ScanImage = styled.img`
+const ScanImage = styled.img<{ rotation: number }>`
   height: 100%;
+  transform: rotate(${(props) => props.rotation}deg);
 `;
 
 function Loader() {
@@ -65,36 +68,16 @@ function Error() {
 }
 
 interface CurrentGroupProps {
-  group: undefined | Scan[];
-  selectedScan: number | null;
-  setSelectedScan: (id: number | null) => void;
+  group: ScanGroup | null;
+  selectedScanId: number | null;
+  setSelectedScanId: (id: number | null) => void;
 }
 
 export function CurrentGroup({
   group,
-  selectedScan,
-  setSelectedScan,
+  selectedScanId,
+  setSelectedScanId,
 }: CurrentGroupProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  // FIXME: This isn't working
-  // useEffect(() => {
-  //   const wrapper = wrapperRef.current;
-  //   if (!wrapper) {
-  //     return;
-  //   }
-
-  //   const observer = new ResizeObserver(() => {
-  //     wrapper.scrollLeft = wrapper.scrollWidth;
-  //   });
-
-  //   observer.observe(wrapper);
-
-  //   return () => {
-  //     observer.disconnect();
-  //   };
-  // }, [wrapperRef]);
-
   if (!group) {
     return (
       <CurrentGroupWrapper>
@@ -103,26 +86,35 @@ export function CurrentGroup({
     );
   }
 
+  console.log(group);
+
   return (
     <CurrentGroupWrapper>
-      <PagesWrapper ref={wrapperRef}>
-        {group.map((scan) => (
+      <PagesWrapper>
+        {group.scans.map((scan) => (
           <ScanWrapper
             key={scan.id}
-            $selected={scan.id === selectedScan}
+            $selected={scan.id === selectedScanId}
             $loading={scan.status === "PENDING"}
             $failed={scan.status === "FAILED"}
+            $rotation={scan.rotation}
             onClick={() => {
-              if (selectedScan === scan.id) {
-                setSelectedScan(null);
+              if (selectedScanId === scan.id) {
+                setSelectedScanId(null);
               } else {
-                setSelectedScan(scan.id!);
+                setSelectedScanId(scan.id!);
               }
             }}
           >
             {scan.status === "PENDING" && <Loader />}
             {scan.status === "FAILED" && <Error />}
-            {scan.status === "COMPLETE" && <ScanImage src={scan.path} />}
+            {scan.status === "COMPLETE" && (
+              <ScanImage
+                src={scan.path}
+                rotation={scan.rotation}
+                // cropCoordinates={scan.cropCoordinates}
+              />
+            )}
           </ScanWrapper>
         ))}
       </PagesWrapper>

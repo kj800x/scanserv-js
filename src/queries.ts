@@ -2,34 +2,30 @@ import { gql } from "@apollo/client";
 
 export const OMNIBUS = gql`
   query OmnibusQuery {
-    scans {
+    incompleteGroups {
       id
+      title
+      comment
+      createdAt
       status
-      path
-      scannedAt
-      scanner
-      group {
+      tags
+      updatedAt
+      scans {
         id
-        title
-        comment
-        createdAt
         status
-        tags
-        updatedAt
-      }
-      rotation
-      cropCoordinates
-      scanParameters
-      originalPath {
         path
+        scannedAt
+        scanner
+        rotation
+        cropCoordinates
+        scanParameters
+        originalPath {
+          path
+        }
+        editedPath {
+          path
+        }
       }
-      editedPath {
-        path
-      }
-    }
-    dividers {
-      id
-      ts
     }
   }
 `;
@@ -39,11 +35,27 @@ export const GROUPS = gql`
     groups(status: $status) {
       id
       title
-      createdAt
-      updatedAt
-      status
       comment
+      createdAt
+      status
       tags
+      updatedAt
+      scans {
+        id
+        status
+        path
+        scannedAt
+        scanner
+        rotation
+        cropCoordinates
+        scanParameters
+        originalPath {
+          path
+        }
+        editedPath {
+          path
+        }
+      }
     }
   }
 `;
@@ -94,12 +106,6 @@ export const RESCAN = gql`
   }
 `;
 
-export const ADD_DIVIDER = gql`
-  mutation AddDivider {
-    addDivider
-  }
-`;
-
 export const COMMIT_GROUP = gql`
   mutation CommitGroup($scanIds: [Int!]!, $title: String!) {
     commitGroup(scanIds: $scanIds, title: $title)
@@ -107,8 +113,8 @@ export const COMMIT_GROUP = gql`
 `;
 
 export const CREATE_GROUP = gql`
-  mutation CreateGroup($title: String!, $status: String!) {
-    createGroup(title: $title, status: $status)
+  mutation CreateGroup($status: String!) {
+    createGroup(status: $status)
   }
 `;
 
