@@ -4,7 +4,6 @@ import { ExportPage } from "./ExportPage";
 import { NavigationBar } from "./NavigationBar";
 import { useState, useEffect, createContext } from "react";
 import { useApolloClient, gql } from "@apollo/client";
-import styled from "styled-components";
 
 // Create a context to share server connection status across components
 export const ServerConnectionContext = createContext<boolean>(true);

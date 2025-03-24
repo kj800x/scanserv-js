@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@apollo/client";
 import { ADD_DIVIDER, OMNIBUS, RESCAN, SCAN, COMMIT_GROUP } from "./queries";
-import { OmnibusQuery, Scan, ScanDivider } from "./gql/graphql";
+import { OmnibusQueryQuery, Scan, ScanDivider } from "./gql/graphql";
 import { useMemo, useState } from "react";
 import { Toolbar } from "./Toolbar";
 import { CurrentGroup } from "./CurrentGroup";
@@ -88,7 +88,7 @@ function mergedTimeline(
   return timeline;
 }
 
-function groupScans(omnibus: OmnibusQuery) {
+function groupScans(omnibus: OmnibusQueryQuery) {
   const fullTimeline = mergedTimeline(omnibus.scans, omnibus.dividers);
 
   const groups: Scan[][] = [];

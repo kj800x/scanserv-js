@@ -4,7 +4,6 @@ import {
   SCANS_BY_GROUP,
   UPDATE_GROUP,
   ROTATE_SCAN,
-  CROP_SCAN,
   COMMIT_GROUP,
 } from "./queries";
 import { Scan, ScanGroup } from "./gql/graphql";
@@ -12,6 +11,7 @@ import { useMemo, useState, useContext, useCallback } from "react";
 import styled from "styled-components";
 import { FullPageError } from "./components/FullPageError";
 import { ServerConnectionContext } from "./App";
+import { GroupNavigationBar } from "./components/GroupNavigationBar";
 
 const PageWrapper = styled.div`
   display: flex;
@@ -49,13 +49,6 @@ const ToolbarButton = styled.button`
   }
 `;
 
-const GroupSelector = styled.select`
-  padding: 8px;
-  margin-right: 10px;
-  border-radius: 4px;
-  border: none;
-`;
-
 const MainContent = styled.div`
   display: flex;
   flex: 1;
@@ -85,10 +78,6 @@ const ScanPreview = styled.div<{ selected: boolean }>`
     border-color: #007bff;
   }
 `;
-
-interface ScanImageProps {
-  rotation?: number;
-}
 
 const ScanImage = styled.img`
   width: 100%;
@@ -134,35 +123,6 @@ const FormField = styled.div`
   margin-bottom: 15px;
 `;
 
-const Label = styled.label`
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-  color: #343a40;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  min-height: 100px;
-  resize: vertical;
-`;
-
-const TagsInput = styled.div`
-  margin-top: 5px;
-`;
-
 const Tag = styled.span`
   display: inline-block;
   background-color: #e9ecef;
@@ -187,7 +147,7 @@ export function EditPage() {
   const [selectedScan, setSelectedScan] = useState<number | null>(null);
   const [groupTitle, setGroupTitle] = useState<string>("");
   const [groupComment, setGroupComment] = useState<string>("");
-  const [groupTags, setGroupTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState<string>("");
   const isServerOnline = useContext(ServerConnectionContext);
 
@@ -224,12 +184,6 @@ export function EditPage() {
     ],
   });
 
-  const [cropScan, { error: cropError }] = useMutation(CROP_SCAN, {
-    refetchQueries: [
-      { query: SCANS_BY_GROUP, variables: { groupId: selectedGroup } },
-    ],
-  });
-
   const [commitGroup, { error: commitError }] = useMutation(COMMIT_GROUP, {
     refetchQueries: [
       { query: GROUPS, variables: { status: "scanning" } },
@@ -239,12 +193,7 @@ export function EditPage() {
 
   // Combine all potential errors
   const error =
-    groupsError ||
-    scansError ||
-    updateError ||
-    rotateError ||
-    cropError ||
-    commitError;
+    groupsError || scansError || updateError || rotateError || commitError;
 
   const groups: ScanGroup[] = useMemo(() => {
     return groupsData?.groups || [];
@@ -261,7 +210,7 @@ export function EditPage() {
       if (group) {
         setGroupTitle(group.title || "");
         setGroupComment(group.comment || "");
-        setGroupTags(group.tags || []);
+        setTags(group.tags || []);
       }
     }
   }, [selectedGroup, groups]);
@@ -305,7 +254,7 @@ export function EditPage() {
           id: selectedGroup,
           title: groupTitle,
           comment: groupComment,
-          tags: groupTags,
+          tags: tags,
         },
       });
     }
@@ -326,14 +275,14 @@ export function EditPage() {
   };
 
   const handleAddTag = () => {
-    if (newTag.trim() && !groupTags.includes(newTag.trim())) {
-      setGroupTags([...groupTags, newTag.trim()]);
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
       setNewTag("");
     }
   };
 
   const handleRemoveTag = (tag: string) => {
-    setGroupTags(groupTags.filter((t) => t !== tag));
+    setTags(tags.filter((t) => t !== tag));
   };
 
   const handleRetry = useCallback(() => {
@@ -342,6 +291,48 @@ export function EditPage() {
       refetchScans();
     }
   }, [refetchGroups, refetchScans, selectedGroup]);
+
+  // Function to handle group selection from the navigation bar
+  const handleSelectGroup = useCallback(
+    (groupId: number | null) => {
+      setSelectedGroup(groupId);
+      setSelectedScan(null);
+
+      // Reset form fields when changing groups
+      if (groupId === null) {
+        setGroupTitle("");
+        setGroupComment("");
+        setTags([]);
+      } else {
+        const group = groups.find((g) => g.id === groupId);
+        if (group) {
+          setGroupTitle(group.title || "");
+          setGroupComment(group.comment || "");
+          setTags(group.tags || []);
+        }
+      }
+    },
+    [groups]
+  );
+
+  // Group the groups by creation time
+  const orderedGroups = useMemo(() => {
+    if (!groups) return [];
+
+    return [...groups].sort(
+      (a, b) =>
+        new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime()
+    );
+  }, [groups]);
+
+  // Track the selected group index
+  const selectedGroupIndex = useMemo(() => {
+    if (!selectedGroup || !orderedGroups.length) return 0;
+    return orderedGroups.findIndex((group) => group.id === selectedGroup) || 0;
+  }, [selectedGroup, orderedGroups]);
+
+  // Define canFinalize condition
+  const canFinalize = selectedGroup && scans.length > 0;
 
   if (groupsLoading) return <div>Loading groups...</div>;
 
@@ -360,29 +351,12 @@ export function EditPage() {
   return (
     <PageWrapper>
       <EditPageToolbar>
-        <GroupSelector
-          value={selectedGroup || ""}
-          onChange={(e) => {
-            const value = e.target.value;
-            setSelectedGroup(value ? Number(value) : null);
-            setSelectedScan(null);
-          }}
-        >
-          <option value="">Select a group to edit</option>
-          {groups.map((group) => (
-            <option key={group.id} value={group.id}>
-              {group.title || `Group ${group.id}`}
-            </option>
-          ))}
-        </GroupSelector>
-
         <ToolbarButton onClick={handleSaveGroup} disabled={!selectedGroup}>
-          Save Group
+          Save Changes
         </ToolbarButton>
-
         <ToolbarButton
           onClick={handleFinalizeGroup}
-          disabled={!selectedGroup || scans.length === 0}
+          disabled={!selectedGroup || !canFinalize}
         >
           Finalize Group
         </ToolbarButton>
@@ -403,7 +377,7 @@ export function EditPage() {
               <ScanPreview
                 key={scan.id}
                 selected={scan.id === selectedScan}
-                onClick={() => setSelectedScan(scan.id)}
+                onClick={() => setSelectedScan(scan.id!)}
               >
                 <ScanImage
                   src={scan.path}
@@ -464,7 +438,7 @@ export function EditPage() {
               <FormField>
                 <label>Tags:</label>
                 <div style={{ marginBottom: "10px" }}>
-                  {groupTags.map((tag) => (
+                  {tags.map((tag) => (
                     <Tag key={tag}>
                       {tag}
                       <span
@@ -511,6 +485,30 @@ export function EditPage() {
           </EditSidebar>
         )}
       </MainContent>
+      {!groupsLoading && !groupsError && (
+        <GroupNavigationBar
+          groups={orderedGroups.map((group) => {
+            return scans.filter((scan) => scan.group?.id === group.id) || [];
+          })}
+          selectedGroupIndex={selectedGroupIndex}
+          onSelectGroup={(index) => {
+            if (index >= 0 && index < orderedGroups.length) {
+              const group = orderedGroups[index];
+              if (group && typeof group.id === "number") {
+                handleSelectGroup(group.id);
+              }
+            }
+          }}
+          onCreateNewGroup={() => {}} // No new group creation in Edit page
+          groupTitles={
+            new Map(
+              groups
+                .filter((group) => group.id !== null && group.id !== undefined)
+                .map((group) => [Number(group.id), group.title || ""])
+            )
+          }
+        />
+      )}
     </PageWrapper>
   );
 }

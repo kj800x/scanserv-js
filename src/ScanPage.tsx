@@ -1,17 +1,17 @@
-import { useMutation, useQuery, gql } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import {
   CREATE_GROUP,
   GROUPS,
   SCAN,
-  RESCAN,
   SCANS_BY_GROUP,
   SCANNERS,
 } from "./queries";
-import { Scan, ScanGroup, ScannerInfo } from "./gql/graphql";
+import { Scan, ScannerInfo } from "./gql/graphql";
 import { useMemo, useState, useContext, useCallback, useEffect } from "react";
 import styled from "styled-components";
 import { FullPageError } from "./components/FullPageError";
 import { ServerConnectionContext } from "./App";
+import { GroupNavigationBar } from "./components/GroupNavigationBar";
 
 const PageWrapper = styled.div`
   display: flex;
@@ -47,13 +47,6 @@ const ToolbarButton = styled.button`
     background-color: #6c757d;
     cursor: not-allowed;
   }
-`;
-
-const GroupSelector = styled.select`
-  padding: 8px;
-  margin-right: 10px;
-  border-radius: 4px;
-  border: none;
 `;
 
 const ScannerSelector = styled.select`
@@ -172,25 +165,6 @@ const ScanFooter = styled.div`
   color: #555;
 `;
 
-const LoadingSpinner = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80px;
-  height: 80px;
-  border: 8px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  border-top-color: #007bff;
-  animation: spin 1s ease-in-out infinite;
-
-  @keyframes spin {
-    to {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
-  }
-`;
-
 export function ScanPage() {
   const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
   const [selectedScan, setSelectedScan] = useState<number | null>(null);
@@ -241,17 +215,18 @@ export function ScanPage() {
     ],
   });
 
-  const [rescan, { error: rescanError }] = useMutation(RESCAN, {
-    variables: {
-      scanId: selectedScan,
-      name: selectedScanner,
-      parameters: JSON.stringify({ "--resolution": "300" }),
-    },
-    refetchQueries: [
-      { query: GROUPS, variables: { status: "scanning" } },
-      { query: SCANS_BY_GROUP, variables: { groupId: selectedGroup } },
-    ],
-  });
+  // TODO: Unused, we need to implement this
+  // const [rescan, { error: rescanError }] = useMutation(RESCAN, {
+  //   variables: {
+  //     scanId: selectedScan,
+  //     name: selectedScanner,
+  //     parameters: JSON.stringify({ "--resolution": "300" }),
+  //   },
+  //   refetchQueries: [
+  //     { query: GROUPS, variables: { status: "scanning" } },
+  //     { query: SCANS_BY_GROUP, variables: { groupId: selectedGroup } },
+  //   ],
+  // });
 
   const [createGroup, { error: createGroupError }] = useMutation(CREATE_GROUP, {
     variables: {
@@ -263,16 +238,7 @@ export function ScanPage() {
 
   // Combine all potential errors
   const error =
-    groupsError ||
-    scansError ||
-    scanError ||
-    rescanError ||
-    createGroupError ||
-    scannersError;
-
-  const groups: ScanGroup[] = useMemo(() => {
-    return groupsData?.groups || [];
-  }, [groupsData]);
+    groupsError || scansError || scanError || createGroupError || scannersError;
 
   const scans: Scan[] = useMemo(() => {
     return scansData?.scansByGroup || [];
@@ -323,12 +289,34 @@ export function ScanPage() {
     setSelectedScan(null);
   };
 
-  const handleRetry = useCallback(() => {
+  const handleRescan = useCallback(() => {
     refetchGroups();
     if (selectedGroup) {
       refetchScans();
     }
   }, [refetchGroups, refetchScans, selectedGroup]);
+
+  // Function to handle group selection from the navigation bar
+  const handleSelectGroup = useCallback((groupId: number | null) => {
+    setSelectedGroup(groupId);
+    setSelectedScan(null);
+  }, []);
+
+  // Group the scan groups by creation time
+  const orderedGroups = useMemo(() => {
+    if (!groupsData?.scanGroups) return [];
+
+    return [...groupsData.scanGroups].sort(
+      (a, b) =>
+        new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime()
+    );
+  }, [groupsData?.scanGroups]);
+
+  // Track the selected group index
+  const selectedGroupIndex = useMemo(() => {
+    if (!selectedGroup || !orderedGroups.length) return 0;
+    return orderedGroups.findIndex((group) => group.id === selectedGroup) || 0;
+  }, [selectedGroup, orderedGroups]);
 
   if (groupsLoading || scannersLoading) return <div>Loading...</div>;
 
@@ -338,7 +326,7 @@ export function ScanPage() {
       <PageWrapper>
         <FullPageError
           error={error || new Error("Unable to connect to the scanner server")}
-          onRetry={handleRetry}
+          onRetry={handleRescan}
         />
       </PageWrapper>
     );
@@ -347,55 +335,29 @@ export function ScanPage() {
   return (
     <PageWrapper>
       <ScanPageToolbar>
-        <GroupSelector
-          value={selectedGroup || ""}
-          onChange={(e) => setSelectedGroup(Number(e.target.value) || null)}
+        <ToolbarButton
+          onClick={handleScan}
+          disabled={!selectedGroup || !selectedScanner}
         >
-          <option value="">Select a group</option>
-          {groups.map((group) => (
-            <option key={group.id} value={group.id}>
-              {group.title || `Group ${group.id}`}
-            </option>
-          ))}
-        </GroupSelector>
+          Scan
+        </ToolbarButton>
+        {selectedScan && (
+          <ToolbarButton onClick={handleRescan} disabled={!selectedScanner}>
+            Rescan
+          </ToolbarButton>
+        )}
 
         <ScannerSelector
           value={selectedScanner}
           onChange={(e) => setSelectedScanner(e.target.value)}
         >
-          <option value="">Select a scanner</option>
-          {scanners.map((scanner) => (
+          <option value="">Select Scanner</option>
+          {scannersData?.scanners.map((scanner: ScannerInfo) => (
             <option key={scanner.name} value={scanner.name}>
-              {scanner.name} - {scanner.description}
+              {scanner.name} ({scanner.description})
             </option>
           ))}
         </ScannerSelector>
-
-        <ToolbarButton onClick={handleScan} disabled={!selectedScanner}>
-          Scan
-        </ToolbarButton>
-
-        <ToolbarButton
-          onClick={() => {
-            if (selectedScan && selectedScanner) {
-              // Execute the actual rescan - backend should create a PENDING scan
-              rescan({
-                variables: {
-                  scanId: selectedScan,
-                  name: selectedScanner,
-                  parameters: JSON.stringify({ "--resolution": "300" }),
-                },
-              });
-
-              setSelectedScan(null);
-            }
-          }}
-          disabled={!selectedScan || !selectedScanner}
-        >
-          Rescan
-        </ToolbarButton>
-
-        <ToolbarButton onClick={handleCreateGroup}>New Group</ToolbarButton>
       </ScanPageToolbar>
 
       <MainContent>
@@ -415,7 +377,7 @@ export function ScanPage() {
                 key={scan.id}
                 selected={scan.id === selectedScan}
                 status={scan.status}
-                onClick={() => setSelectedScan(scan.id)}
+                onClick={() => setSelectedScan(scan.id!)}
               >
                 <ScanImageContainer>
                   {scan.status === "COMPLETE" && (
@@ -446,6 +408,28 @@ export function ScanPage() {
           </ScansContainer>
         )}
       </MainContent>
+      {/* Add the new GroupNavigationBar at the bottom */}
+      {!groupsLoading && !groupsError && (
+        <GroupNavigationBar
+          groups={orderedGroups.map((group) => {
+            return (
+              scansData?.scans?.filter(
+                (scan: Scan) => scan.group?.id === group.id
+              ) || []
+            );
+          })}
+          selectedGroupIndex={selectedGroupIndex}
+          onSelectGroup={(index) => {
+            if (index >= 0 && index < orderedGroups.length) {
+              const group = orderedGroups[index];
+              if (group && typeof group.id === "number") {
+                handleSelectGroup(group.id);
+              }
+            }
+          }}
+          onCreateNewGroup={handleCreateGroup}
+        />
+      )}
     </PageWrapper>
   );
 }

@@ -11,9 +11,15 @@ export const OMNIBUS = gql`
       group {
         id
         title
+        comment
+        createdAt
+        status
+        tags
+        updatedAt
       }
       rotation
       cropCoordinates
+      scanParameters
       originalPath {
         path
       }

@@ -15,7 +15,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  */
 type Documents = {
     "\n  query CheckConnectivity {\n    __typename\n  }\n": typeof types.CheckConnectivityDocument,
-    "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n      }\n      rotation\n      cropCoordinates\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n": typeof types.OmnibusQueryDocument,
+    "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n        comment\n        createdAt\n        status\n        tags\n        updatedAt\n      }\n      rotation\n      cropCoordinates\n      scanParameters\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n": typeof types.OmnibusQueryDocument,
     "\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n": typeof types.GroupsDocument,
     "\n  query GroupById($id: Int!) {\n    groupById(id: $id) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n": typeof types.GroupByIdDocument,
     "\n  query ScansByGroup($groupId: Int!) {\n    scansByGroup(groupId: $groupId) {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      rotation\n      cropCoordinates\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n  }\n": typeof types.ScansByGroupDocument,
@@ -28,10 +28,11 @@ type Documents = {
     "\n  mutation AddScanToGroup($scanId: Int!, $groupId: Int!) {\n    addScanToGroup(scanId: $scanId, groupId: $groupId)\n  }\n": typeof types.AddScanToGroupDocument,
     "\n  mutation RotateScan($scanId: Int!, $rotation: Int!) {\n    rotateScan(scanId: $scanId, rotation: $rotation)\n  }\n": typeof types.RotateScanDocument,
     "\n  mutation CropScan(\n    $scanId: Int!\n    $x: Float!\n    $y: Float!\n    $width: Float!\n    $height: Float!\n  ) {\n    cropScan(scanId: $scanId, x: $x, y: $y, width: $width, height: $height)\n  }\n": typeof types.CropScanDocument,
+    "\n  query Scanners {\n    scanners {\n      name\n      description\n    }\n  }\n": typeof types.ScannersDocument,
 };
 const documents: Documents = {
     "\n  query CheckConnectivity {\n    __typename\n  }\n": types.CheckConnectivityDocument,
-    "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n      }\n      rotation\n      cropCoordinates\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n": types.OmnibusQueryDocument,
+    "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n        comment\n        createdAt\n        status\n        tags\n        updatedAt\n      }\n      rotation\n      cropCoordinates\n      scanParameters\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n": types.OmnibusQueryDocument,
     "\n  query Groups($status: String) {\n    groups(status: $status) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n": types.GroupsDocument,
     "\n  query GroupById($id: Int!) {\n    groupById(id: $id) {\n      id\n      title\n      createdAt\n      updatedAt\n      status\n      comment\n      tags\n    }\n  }\n": types.GroupByIdDocument,
     "\n  query ScansByGroup($groupId: Int!) {\n    scansByGroup(groupId: $groupId) {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      rotation\n      cropCoordinates\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n  }\n": types.ScansByGroupDocument,
@@ -44,6 +45,7 @@ const documents: Documents = {
     "\n  mutation AddScanToGroup($scanId: Int!, $groupId: Int!) {\n    addScanToGroup(scanId: $scanId, groupId: $groupId)\n  }\n": types.AddScanToGroupDocument,
     "\n  mutation RotateScan($scanId: Int!, $rotation: Int!) {\n    rotateScan(scanId: $scanId, rotation: $rotation)\n  }\n": types.RotateScanDocument,
     "\n  mutation CropScan(\n    $scanId: Int!\n    $x: Float!\n    $y: Float!\n    $width: Float!\n    $height: Float!\n  ) {\n    cropScan(scanId: $scanId, x: $x, y: $y, width: $width, height: $height)\n  }\n": types.CropScanDocument,
+    "\n  query Scanners {\n    scanners {\n      name\n      description\n    }\n  }\n": types.ScannersDocument,
 };
 
 /**
@@ -67,7 +69,7 @@ export function graphql(source: "\n  query CheckConnectivity {\n    __typename\n
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n      }\n      rotation\n      cropCoordinates\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n"): (typeof documents)["\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n      }\n      rotation\n      cropCoordinates\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n"];
+export function graphql(source: "\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n        comment\n        createdAt\n        status\n        tags\n        updatedAt\n      }\n      rotation\n      cropCoordinates\n      scanParameters\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n"): (typeof documents)["\n  query OmnibusQuery {\n    scans {\n      id\n      status\n      path\n      scannedAt\n      scanner\n      group {\n        id\n        title\n        comment\n        createdAt\n        status\n        tags\n        updatedAt\n      }\n      rotation\n      cropCoordinates\n      scanParameters\n      originalPath {\n        path\n      }\n      editedPath {\n        path\n      }\n    }\n    dividers {\n      id\n      ts\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -116,6 +118,10 @@ export function graphql(source: "\n  mutation RotateScan($scanId: Int!, $rotatio
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CropScan(\n    $scanId: Int!\n    $x: Float!\n    $y: Float!\n    $width: Float!\n    $height: Float!\n  ) {\n    cropScan(scanId: $scanId, x: $x, y: $y, width: $width, height: $height)\n  }\n"): (typeof documents)["\n  mutation CropScan(\n    $scanId: Int!\n    $x: Float!\n    $y: Float!\n    $width: Float!\n    $height: Float!\n  ) {\n    cropScan(scanId: $scanId, x: $x, y: $y, width: $width, height: $height)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Scanners {\n    scanners {\n      name\n      description\n    }\n  }\n"): (typeof documents)["\n  query Scanners {\n    scanners {\n      name\n      description\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
