@@ -7,7 +7,7 @@ import {
   COMMIT_GROUP,
 } from "./queries";
 import { ScanGroup } from "./gql/graphql";
-import { useMemo, useState, useContext, useCallback } from "react";
+import { useMemo, useState, useContext, useCallback, useEffect } from "react";
 import styled from "styled-components";
 import { FullPageError } from "./components/FullPageError";
 import { ServerConnectionContext } from "./App";
@@ -123,6 +123,7 @@ export function EditPage() {
   const [groupComment, setGroupComment] = useState<string>("");
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState<string>("");
+  const [saveStatus, setSaveStatus] = useState<string>("");
   const isServerOnline = useContext(ServerConnectionContext);
 
   // Fetch groups that are in 'scanning' status for editing
@@ -138,6 +139,10 @@ export function EditPage() {
 
   const [updateGroup, { error: updateError }] = useMutation(UPDATE_GROUP, {
     refetchQueries: [{ query: GROUPS, variables: { status: "scanning" } }],
+    onCompleted: () => {
+      setSaveStatus("Saved");
+      setTimeout(() => setSaveStatus(""), 2000);
+    },
   });
 
   const [rotateScan, { error: rotateError }] = useMutation(ROTATE_SCAN, {
@@ -176,6 +181,46 @@ export function EditPage() {
     }
   }, [selectedGroupId, groups]);
 
+  // Save group data when changes are made
+  const saveGroupData = useCallback(() => {
+    if (selectedGroupId) {
+      updateGroup({
+        variables: {
+          id: selectedGroupId,
+          title: groupTitle,
+          comment: groupComment,
+          tags: tags,
+        },
+      });
+    }
+  }, [selectedGroupId, groupTitle, groupComment, tags, updateGroup]);
+
+  // Auto-save changes when values change
+  useEffect(() => {
+    if (selectedGroupId && currentGroup) {
+      // Avoid saving if we just loaded the data from the server and nothing changed
+      const hasGroupTitleChanged = currentGroup.title !== groupTitle;
+      const hasGroupCommentChanged = currentGroup.comment !== groupComment;
+      const hasTagsChanged =
+        JSON.stringify(currentGroup.tags) !== JSON.stringify(tags);
+
+      if (hasGroupTitleChanged || hasGroupCommentChanged || hasTagsChanged) {
+        // Use a debounce timer to avoid too many requests
+        const timer = setTimeout(() => {
+          saveGroupData();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [
+    selectedGroupId,
+    groupTitle,
+    groupComment,
+    tags,
+    currentGroup,
+    saveGroupData,
+  ]);
+
   const handleRotateLeft = () => {
     if (selectedScan) {
       const scan = currentGroup?.scans.find((s) => s.id === selectedScan);
@@ -208,19 +253,6 @@ export function EditPage() {
     }
   };
 
-  const handleSaveGroup = () => {
-    if (selectedGroupId) {
-      updateGroup({
-        variables: {
-          id: selectedGroupId,
-          title: groupTitle,
-          comment: groupComment,
-          tags: tags,
-        },
-      });
-    }
-  };
-
   const handleFinalizeGroup = () => {
     if (selectedGroupId && currentGroup && currentGroup.scans.length > 0) {
       const scanIds = currentGroup.scans.map((scan) => scan.id);
@@ -237,13 +269,19 @@ export function EditPage() {
 
   const handleAddTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
+      const updatedTags = [...tags, newTag.trim()];
+      setTags(updatedTags);
       setNewTag("");
+
+      // Tags are saved automatically through the useEffect
     }
   };
 
   const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
+    const updatedTags = tags.filter((t) => t !== tag);
+    setTags(updatedTags);
+
+    // Tags are saved automatically through the useEffect
   };
 
   const handleRetry = useCallback(() => {
@@ -293,15 +331,17 @@ export function EditPage() {
   return (
     <PageWrapper>
       <EditPageToolbar>
-        <ToolbarButton onClick={handleSaveGroup} disabled={!selectedGroupId}>
-          Save Changes
-        </ToolbarButton>
         <ToolbarButton
           onClick={handleFinalizeGroup}
           disabled={!selectedGroupId || !canFinalize}
         >
           Finalize Group
         </ToolbarButton>
+        {saveStatus && (
+          <span style={{ marginLeft: "10px", color: "#4caf50" }}>
+            {saveStatus}
+          </span>
+        )}
       </EditPageToolbar>
 
       <MainContent>
