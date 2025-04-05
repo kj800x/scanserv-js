@@ -70,6 +70,8 @@ export function ScanPage() {
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [selectedScan, setSelectedScan] = useState<number | null>(null);
   const [selectedScanner, setSelectedScanner] = useState<string>("");
+  const [shouldCreateNewGroup, setShouldCreateNewGroup] =
+    useState<boolean>(false);
   const isServerOnline = useContext(ServerConnectionContext);
 
   const {
@@ -162,6 +164,11 @@ export function ScanPage() {
     return result.data?.createGroup;
   };
 
+  const handleNewGroupIntent = () => {
+    setShouldCreateNewGroup(true);
+    setSelectedGroupId(null);
+  };
+
   const handleScan = async () => {
     // Check if a scanner is selected
     if (!selectedScanner) {
@@ -171,9 +178,11 @@ export function ScanPage() {
 
     let groupId = selectedGroupId;
 
-    if (!groupId) {
+    // Create a new group only if we need one (either no group selected or shouldCreateNewGroup is true)
+    if (!groupId || shouldCreateNewGroup) {
       const newGroupId = await handleCreateGroup();
       groupId = newGroupId;
+      setShouldCreateNewGroup(false);
     }
 
     // Perform the scan - backend should create a PENDING scan entry
@@ -229,7 +238,9 @@ export function ScanPage() {
       <ScanPageToolbar>
         <ToolbarButton
           onClick={handleScan}
-          disabled={!selectedGroupId || !selectedScanner}
+          disabled={
+            !selectedScanner || (!selectedGroupId && !shouldCreateNewGroup)
+          }
         >
           Scan
         </ToolbarButton>
@@ -272,12 +283,14 @@ export function ScanPage() {
       {!omnibusLoading && !omnibusError && (
         <GroupNavigationBar
           groups={orderedGroups}
-          selectedGroupId={selectedGroupId}
+          selectedGroupId={shouldCreateNewGroup ? null : selectedGroupId}
           onSelectGroup={(id) => {
             setSelectedGroupId(id);
             setSelectedScan(null);
+            setShouldCreateNewGroup(false);
           }}
-          onCreateNewGroup={handleCreateGroup}
+          onCreateNewGroup={handleNewGroupIntent}
+          newGroupSelected={shouldCreateNewGroup}
         />
       )}
     </PageWrapper>

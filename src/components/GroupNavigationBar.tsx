@@ -58,6 +58,7 @@ interface GroupNavigationBarProps {
   selectedGroupId: number | null;
   onSelectGroup: (id: number) => void;
   onCreateNewGroup?: () => void;
+  newGroupSelected?: boolean;
 }
 
 export function GroupNavigationBar({
@@ -65,6 +66,7 @@ export function GroupNavigationBar({
   selectedGroupId,
   onSelectGroup,
   onCreateNewGroup,
+  newGroupSelected = false,
 }: GroupNavigationBarProps) {
   console.log(groups);
 
@@ -90,7 +92,7 @@ export function GroupNavigationBar({
         );
       })}
       {onCreateNewGroup && (
-        <NewGroupButton onClick={onCreateNewGroup} selected={false}>
+        <NewGroupButton onClick={onCreateNewGroup} selected={newGroupSelected}>
           <FontAwesomeIcon icon={faPlus} size="2x" />
           <GroupLabel>New Group</GroupLabel>
         </NewGroupButton>
