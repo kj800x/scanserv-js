@@ -28,22 +28,22 @@ const ScanWrapper = styled.div<{
 }>`
   height: 100%;
   border: 2px solid black;
-  aspect-ratio: ${({ $rotation }) =>
-    $rotation % 180 === 90 ? "1.38408304" : "0.7225"};
+  aspect-ratio: 0.7225;
 
   max-height: 800px;
 
   display: flex;
   justify-content: center;
   align-items: center;
+  transform: rotate(${(props) => props.$rotation}deg);
+  ${({ $rotation }) => ($rotation % 180 === 90 ? `margin: 100px;` : ``)}
 
   ${({ $selected }) => ($selected ? `border-color: orange;` : ``)}
   ${({ $failed }) => ($failed ? `background-color: #ffcece;` : ``)}
   ${({ $loading }) => ($loading ? `background-color: #daffda;` : ``)}
 `;
-const ScanImage = styled.img<{ rotation: number }>`
+const ScanImage = styled.img`
   height: 100%;
-  transform: rotate(${(props) => props.rotation}deg);
 `;
 
 function Loader() {
@@ -111,7 +111,6 @@ export function CurrentGroup({
             {scan.status === "COMPLETE" && (
               <ScanImage
                 src={scan.path}
-                rotation={scan.rotation}
                 // cropCoordinates={scan.cropCoordinates}
               />
             )}
